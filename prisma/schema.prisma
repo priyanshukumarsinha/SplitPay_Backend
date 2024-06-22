@@ -56,6 +56,7 @@ model Group {
   currecy      Currencies     @default(INR)
   groupTypes   GroupTypes     @default(PUBLIC)
   GroupMsg     message[]      @relation("GroupMsg")
+  amount       Float          @default(0)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 }
@@ -66,6 +67,7 @@ model GroupMembers {
   group     Group    @relation(fields: [groupId], references: [id])
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
+  share     Float    @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

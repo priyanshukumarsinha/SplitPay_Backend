@@ -19,6 +19,7 @@ const createGroup = async (req, res) => {
                 adminId : req.user.id,
                 currecy : req.body.currency,
                 groupTypes : req.body.groupTypes,
+                amount : req.body.amount
             }
         })
 
@@ -43,7 +44,8 @@ const createGroup = async (req, res) => {
                     await prisma.groupMembers.create({
                         data:{
                             userId : member,
-                            groupId : group.id
+                            groupId : group.id,
+                            share : group.amount / (req.body.members.length+1)
                         }
                     })
                 })
@@ -223,10 +225,31 @@ const addToGroup = async (req, res) => {
             message : "You are not a Member of this Group"
         })
 
+        const totalMembers = await prisma.groupMembers.findMany({
+            where:{
+                groupId : req.body.groupId
+            }
+        })
+
+        const share = group.amount / (totalMembers.length+2)
+
+        // update share in all groupmember
+        totalMembers.forEach(async (member) => {
+            await prisma.groupMembers.update({
+                where:{
+                    id : member.id
+                },
+                data:{
+                    share : share
+                }
+            })
+        })
+
         const member = await prisma.groupMembers.create({
             data:{
                 userId : req.body.userId,
-                groupId : req.body.groupId
+                groupId : req.body.groupId,
+                share : share
             }
         })
 
