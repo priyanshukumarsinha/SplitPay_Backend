@@ -5,7 +5,6 @@ import cookieParser from 'cookie-parser';
 import {router as userRouter} from './routes/user.routes.js'
 import {router as followRouter} from './routes/follow.routes.js'
 import {router as groupRouter} from './routes/group.routes.js'
-import { errorHandler } from './middlewares/errorHandler.middleware.js';
 
 const app = express();
 app.use(
@@ -37,9 +36,6 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 // parse application/json
 app.use(bodyParser.json())
-
-// error handler middleware
-app.use(errorHandler());
 
 app.get('/', (req, res) => {
     res.send('Hello World');

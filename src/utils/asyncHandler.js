@@ -11,7 +11,7 @@
 // The error handling middleware can then handle the error and send an appropriate response to the client.
 // TODO: Implement the error handling middleware in the API.
 
-import { errorHandler } from "../middlewares/errorHandler.middleware"
+import { errorHandler } from "../middlewares/errorHandler.middleware.js"
 
 const asyncHandler = (requestHandler) => {
     return async (req, res, next) => {

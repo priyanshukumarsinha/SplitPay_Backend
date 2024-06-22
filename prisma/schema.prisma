@@ -21,7 +21,9 @@ model User {
   username        String         @unique
   email           String         @unique
   password        String
-  phoneNumber     Int
+  // how to store phone number in database
+  // Int can't store 10 digit number so we use BigInt
+  phoneNumber     String
   isEmailVerified Boolean        @default(false)
   photoURL        String
   dob             DateTime

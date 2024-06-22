@@ -1,6 +1,6 @@
 // This middleware is used to check if the user is authenticated or not
 
-import { asyncHandler } from "../utils/AsyncHandler";
+import { asyncHandler } from "../utils/AsyncHandler.js";
 
 // when the user is logged in we set the req.user to the user object
 // if the user is not logged in we set req.user to null

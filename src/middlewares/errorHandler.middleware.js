@@ -2,7 +2,7 @@
 // which might occur while using asynchandler
 // So we are going to use this middleware in the routes where we need to send the error response
 
-import { ApiError } from "../utils/ApiError";
+import { ApiError } from "../utils/ApiError.js";
 
 const errorHandler = (err, req, res, next) => {
     // check if the error is an instance of ApiError
@@ -12,18 +12,20 @@ const errorHandler = (err, req, res, next) => {
     // we are going to send the error response with the status code 500 and message "Internal Server Error"
     if(err instanceof ApiError) {
         // send the error response
-        return res.status(err.statusCode).json({
+        return res.status(err?.statusCode).json({
             status : "error",
             statusCode : err.statusCode,
-            message : err.message
+            message : err.message,
         });
     }
 
     // send the error response
-    return res.status(500).json({
+    return res?.status(500).json({
         status : "error",
         statusCode : 500,
-        message : "Internal Server Error"
+        message : "Internal Server Error",
+        error : err,
+        errorMsg : err?.message
     });
 
     // we are not calling next() because we are sending the response here

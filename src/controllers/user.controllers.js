@@ -5,16 +5,17 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/AsyncHandler.js';
 
 // import the cookieToken function
-import { cookieToken, generateAccessToken } from '../utils/generateAccessToken.js';
-
-import bcrypt, { compare } from 'bcrypt'
+import { generateAccessToken } from '../utils/generateAccessToken.js';
 import { generateRefreshToken } from '../utils/generateRefreshToken.js';
+
+import bcrypt, { compare, hash } from 'bcrypt'
 import { options } from '../constants.js';
 
 // Hash
 const hashData = async (data) => {
     const salt = await bcrypt.genSalt(10);
-    return await bcrypt.hash(data, salt);
+    const hash = await bcrypt.hash(toString(data), salt);
+    return hash;
 }
 
 // Compare Hash
@@ -85,9 +86,6 @@ const createUser = asyncHandler(async (req, res) => {
 
     if(userExists) throw new ApiError(500, "User Already Exists with this Email or Username");
 
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
 
     // create a new user
     const user = await prisma.user.create({
@@ -96,8 +94,8 @@ const createUser = asyncHandler(async (req, res) => {
             lastName : lastName.trim(),
             username : username.trim().toLowerCase(),
             email : email.trim().toLowerCase(),
-            password : hashData(password),
-            phoneNumber : hashData(phoneNumber).trim(),
+            password : await hashData(password),
+            phoneNumber : BigInt(phoneNumber).toString() || null,
             isEmailVerified : isEmailVerified || false,
             photoURL : photoURL || "https://www.gravatar.com/avatar/",
             dob : dob || new Date('01/01/2000'),
@@ -108,8 +106,22 @@ const createUser = asyncHandler(async (req, res) => {
     const createdUser = await prisma.user.findUnique({
         where : {
             id : user.id
+        },
+        select : {
+            firstName : true,
+            lastName : true,
+            username : true,
+            email : true,
+            phoneNumber : true,
+            isEmailVerified : true,
+            photoURL : true,
+            dob : true,
+            password : false,
+            refreshToken : false
         }
     });
+
+    createdUser.phoneNumber = parseInt(createdUser.phoneNumber)
 
     // throw error if user is not created
     if(!createdUser) throw new ApiError(501, "Error while Creating User");
