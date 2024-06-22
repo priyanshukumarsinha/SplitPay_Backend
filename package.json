@@ -1,0 +1,41 @@
+{
+  "name": "splitpay_backend",
+  "version": "1.0.0",
+  "description": "This is the Backend of the SplitPay App :: https://github.com/priyanshukumarsinha/SplitPay",
+  "type": "module",
+  "main": "src index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/priyanshukumarsinha/SplitPay_Backend.git"
+  },
+  "keywords": [
+    "splitPay",
+    "Backend",
+    "SplitPay_backend"
+  ],
+  "author": "Priyanshu Kumar Sinha",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/priyanshukumarsinha/SplitPay_Backend/issues"
+  },
+  "homepage": "https://github.com/priyanshukumarsinha/SplitPay_Backend#readme",
+  "devDependencies": {
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "nodemon": "^3.1.4",
+    "prettier": "^3.3.2",
+    "prisma": "^5.15.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.15.1",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "sequelize": "^6.37.3"
+  }
+}
