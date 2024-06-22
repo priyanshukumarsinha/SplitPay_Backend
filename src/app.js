@@ -27,7 +27,7 @@ app.use(express.static('public'));
 
 app.use(cookieParser())
 
-app.use('/api', userRouter)
+app.use('/api/user', userRouter)
 // app.use('/api', followRouter)
 // app.use('/api', groupRouter)
 
