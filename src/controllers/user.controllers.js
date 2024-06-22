@@ -20,7 +20,8 @@ const hashData = async (data) => {
 
 // Compare Hash
 const compareHash = async (data, hash) => {
-    return await bcrypt.compare(data, hash);
+    const compare = await bcrypt.compare(toString(data), toString(hash));
+    return compare;
 }
 
 // Generate Access and Refresh Token
@@ -34,7 +35,7 @@ const generateAccessRefreshToken = async (userId) => {
 
     // Access Token
     const accessToken = generateAccessToken(user);
-
+    
     // Refresh Token
     const refreshToken = generateRefreshToken(user);
 
@@ -61,7 +62,7 @@ const generateAccessRefreshToken = async (userId) => {
             id : userId
         },
         data : {
-            refreshToken : refreshToken
+            refreshToken
         }
     });
 
@@ -71,7 +72,7 @@ const generateAccessRefreshToken = async (userId) => {
     return {accessToken, refreshToken};
 }
 
-// create a new user
+// create a new user : testing done
 const createUser = asyncHandler(async (req, res) => {
     // take information from req.body
     const { firstName, lastName, username, email, password, phoneNumber, isEmailVerified, photoURL, dob } = req.body;
@@ -95,7 +96,7 @@ const createUser = asyncHandler(async (req, res) => {
             username : username.trim().toLowerCase(),
             email : email.trim().toLowerCase(),
             password : await hashData(password),
-            phoneNumber : BigInt(phoneNumber).toString() || null,
+            phoneNumber : phoneNumber || null,
             isEmailVerified : isEmailVerified || false,
             photoURL : photoURL || "https://www.gravatar.com/avatar/",
             dob : dob || new Date('01/01/2000'),
@@ -121,8 +122,6 @@ const createUser = asyncHandler(async (req, res) => {
         }
     });
 
-    createdUser.phoneNumber = parseInt(createdUser.phoneNumber)
-
     // throw error if user is not created
     if(!createdUser) throw new ApiError(501, "Error while Creating User");
 
@@ -146,11 +145,23 @@ const login = asyncHandler(async (req, res) => {
     // if the user is found, we will not return the password and refresh token
     // if the user is not found, we will throw an error
     const user = await prisma.user.findUnique({
-        where : { OR : [{email}, {username}] },
+        where : { 
+            email : email,
+            OR : [{username}] 
+        },
         select : {
+            id : true,
+            firstName : true,
+            lastName : true,
+            username : true,
+            email : true,
+            phoneNumber : true,
+            isEmailVerified : true,
+            photoURL : true,
+            dob : true,
             password : false,
             refreshToken : false
-        }
+        },
     })
     
     // user not found
@@ -171,7 +182,7 @@ const login = asyncHandler(async (req, res) => {
     // we are sending the Access Token in the response and storing the Refresh Token in the HttpOnly Cookie
     // we are also storing the Refresh Token in the Database for future use to generate new Access Token
     // we are not storing the Access Token in the Database because it is not required 
-    const response = new ApiResponse(200, {user, accessToken, refreshToken}, "User Logged In Successfully");
+    const response = new ApiResponse(200, {user}, "User Logged In Successfully");
     return res.status(200)
               .cookie('accessToken', accessToken, options)
               .cookie('refreshToken', refreshToken, options)
@@ -230,6 +241,9 @@ const getFollowing = asyncHandler(async (req, res) => {});
 // get list of all groups user is part of
 const getGroups = asyncHandler(async (req, res) => {});
 
+// verify email
+const verifyEmail = asyncHandler(async (req, res) => {});
+
 
 // export the functions
 export { 
@@ -244,6 +258,7 @@ export {
     changePhotoURL, 
     getFollowers, 
     getFollowing, 
-    getGroups
+    getGroups,
+    verifyEmail
 };
 

@@ -36,7 +36,7 @@ model User {
   Receiver        Transaction[]  @relation("Receiver")
   Author          message[]      @relation("Author")
   GroupMember     GroupMembers[]
-  resetToken      String?
+  refreshToken    String?        @db.VarChar(500)
   // String? means that this field can be null
 }
 
