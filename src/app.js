@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import {router as userRouter} from './routes/user.routes.js'
 import {router as followRouter} from './routes/follow.routes.js'
+import {router as groupRouter} from './routes/group.routes.js'
 
 const app = express();
 app.use(
@@ -29,6 +30,7 @@ app.use(cookieParser())
 
 app.use('/api', userRouter)
 app.use('/api', followRouter)
+app.use('/api', groupRouter)
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
