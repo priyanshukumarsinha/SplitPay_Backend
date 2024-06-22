@@ -14,25 +14,25 @@ datasource db {
 }
 
 model User {
-  id              Int           @id @default(autoincrement())
+  id              Int            @id @default(autoincrement())
   firstName       String
   lastName        String
-  username        String        @unique
-  email           String        @unique
+  username        String         @unique
+  email           String         @unique
   password        String
   phoneNumber     Int
-  isEmailVerified Boolean       @default(false)
+  isEmailVerified Boolean        @default(false)
   photoURL        String
   dob             DateTime
-  followers       Follow[]      @relation("Followers")
-  following       Follow[]      @relation("Following")
-  groups          Group[]       @relation("GroupMembers")
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  followers       Follow[]       @relation("Followers")
+  following       Follow[]       @relation("Following")
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   Group           Group[]
-  Sender          Transaction[] @relation("Sender")
-  Receiver        Transaction[] @relation("Receiver")
-  Author          message[]     @relation("Author")
+  Sender          Transaction[]  @relation("Sender")
+  Receiver        Transaction[]  @relation("Receiver")
+  Author          message[]      @relation("Author")
+  GroupMember     GroupMembers[]
 }
 
 model Follow {
@@ -46,18 +46,28 @@ model Follow {
 }
 
 model Group {
-  id           Int           @id @default(autoincrement())
-  name         String
+  id           Int            @id @default(autoincrement())
+  name         String         @unique
   description  String
   adminId      Int
-  members      User[]        @relation(name:"GroupMembers")
-  admin        User          @relation(fields: [adminId], references: [id])
+  members      GroupMembers[]
+  admin        User           @relation(fields: [adminId], references: [id])
   transactions Transaction[]
-  currecy      Currencies    @default(INR)
-  groupTypes   GroupTypes    @default(PUBLIC)
-  GroupMsg     message[]     @relation("GroupMsg")
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  currecy      Currencies     @default(INR)
+  groupTypes   GroupTypes     @default(PUBLIC)
+  GroupMsg     message[]      @relation("GroupMsg")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model GroupMembers {
+  id        Int      @id @default(autoincrement())
+  groupId   Int
+  group     Group    @relation(fields: [groupId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum GroupTypes {
