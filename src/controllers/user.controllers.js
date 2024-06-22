@@ -1,105 +1,114 @@
 // bring in Prisma
 import {prisma} from '../../prisma/index.js'
+import { ApiError } from '../utils/ApiError.js';
+import { ApiResponse } from '../utils/ApiResponse.js';
+import { asyncHandler } from '../utils/AsyncHandler.js';
 
 // import the cookieToken function
 import { cookieToken } from '../utils/cookieToken.js';
 
-import bcrypt from 'bcrypt'
+import bcrypt, { compare } from 'bcrypt'
+
+// Hash
+const hashData = async (data) => {
+    const salt = await bcrypt.genSalt(10);
+    return await bcrypt.hash(data, salt);
+}
+
+// Compare Hash
+const compareHash = async (data, hash) => {
+    return await bcrypt.compare(data, hash);
+}
 
 // create a new user
-const createUser = async (req, res, next) => {
-    try {
-        const { firstName, lastName, username, email, password, phoneNumber, isEmailVerified, photoURL, dob } = req.body;
+const createUser = asyncHandler(async (req, res) => {
+    // take information from req.body
+    const { firstName, lastName, username, email, password, phoneNumber, isEmailVerified, photoURL, dob } = req.body;
 
-        // Check for username email and password
-        if(!email || !username || !password) throw new Error ("Please Provide all Fields");
+    // Check for username email and password
+    if(!email || !username || !password) throw new ApiError(404, "Please Provide all Fields");
 
-        // Check for unique username and email
-        const userExists = await prisma.user.findFirst({
-            where : {
-                OR : [
-                    {
-                        email
-                    },
-                    {
-                        username
-                    }
-                ]
-            }
-        })
+    // Check for unique username and email
+    const userExists = await prisma.user.findFirst({
+        where : { OR : [{email}, {username}] }
+    })
 
-        if(userExists) throw new Error ("User Already Exists with this Email or Username");
+    if(userExists) throw new ApiError(500, "User Already Exists with this Email or Username");
 
-        // Hash the password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
+    // create a new user
+    const user = await prisma.user.create({
+        data: {
+            firstName : firstName.trim(),
+            lastName : lastName.trim(),
+            username : username.trim().toLowerCase(),
+            email : email.trim().toLowerCase(),
+            password : hashData(password),
+            phoneNumber : hashData(phoneNumber).trim(),
+            isEmailVerified : isEmailVerified || false,
+            photoURL : photoURL || "https://www.gravatar.com/avatar/",
+            dob : dob || new Date('01/01/2000'),
+        },
+    });
 
-        
-        const user = await prisma.user.create({
-            data: {
-                firstName,
-                lastName,
-                username,
-                email,
-                password : hashedPassword,
-                phoneNumber,
-                isEmailVerified,
-                photoURL,
-                dob : new Date(),
-            },
-        });
+    // check if user is created
+    const createdUser = await prisma.user.findUnique({
+        where : {
+            id : user.id
+        }
+    });
 
-        // send user a token
-        cookieToken(user, res)
+    // throw error if user is not created
+    if(!createdUser) throw new ApiError(501, "Error while Creating User");
 
-    } catch (error) {
-        console.log("Error while Signup");
-        return res.status(500).json({
-            status : 500,
-            message: "Need Unique Username and Email",
-            error: error.message
-        })
+    // send user a token
+    // this cookieToken function will set a cookie in the browser
+    // this cookie will be used to authenticate the user
+    // if the cookie exists, it means the user is logged in
+    // So here, we are actually logging in the user after creating the user automatically
+    cookieToken(user, res)
 
-    }
-}
+    // send response
+    const response = new ApiResponse(201, createdUser, "User Created Successfully");
+    return res.status(201).json(response);
+    
+});
 
 
 // Login user
-const login = async(req, res, next) => {
-    try {
-        // take information from req.body
-        const {username, email, password} = req.body;
-        if((!email && !username) || !password) throw new Error ("Invalid Credentials!");
+const login = asyncHandler(async (req, res) => {
+    // take information from req.body
+    const {username, email, password} = req.body;
 
-        // find a user based on email
-        const user = await prisma.user.findUnique({
-            where : {
-                email
-            }
-        })
-        
-        // user not found
-        if(!user) throw new Error ("No user exists with this Email!")
+    // Check for username email and password
+    if((!email && !username) || !password) throw new ApiError(401, "Please Provide all Fields");
 
-        // compare the password
-        const isMatch = await bcrypt.compare(password, user.password);
-        if(!isMatch) throw new Error ("Invalid Credentials!");
+    // find a user based on email or username
+    const user = await prisma.user.findUnique({
+        where : { OR : [{email}, {username}] }
+    })
+    
+    // user not found
+    if(!user) throw new ApiError(404, "No user exists with this Email!")
 
+    // compare the password
+    const isMatch = compareHash(password, user.password);
+    if(!isMatch) throw new ApiError(401, "Invalid Credentials!");
 
-        // User Exists
-        cookieToken(user, res);
+    // hide password
+    user.password = undefined;
 
+    // User Exists : send user a token : cookieToken
+    // if the cookieToken exists, it means the user is logged in
+    cookieToken(user, res);
 
-    } catch (error) {
-        console.log("Error while Login", error);
-        return res.status(500).json({
-            status : 500,
-            message: "Invalid Username or Password",
-            error : error.message
-        })
-    }
-}
+    // send response
+    const response = new ApiResponse(200, user, "User Logged In Successfully");
+    return res.status(200).json(response);
+});
 
 // logout user
 const logout = async(req, res, next) => {
