@@ -86,6 +86,18 @@ const getGroup = async (req, res) => {
             })
         }
 
+        const ifGroupMember = await prisma.groupMembers.findFirst({
+            where:{
+                groupId : parseInt(req.params.id),
+                userId : req.user.id
+            }
+        }) || group.adminId === req.user.id
+
+        if(!ifGroupMember) return res.status(400).json({
+            status : 400,
+            message : "You are not a Member of this Group"
+        })
+
         return res.status(200).json({
             status : 200,
             group : group
@@ -104,7 +116,10 @@ const getGroups = async (req, res) => {
     try {
         const groups = await prisma.group.findMany({
             where:{
-                adminId : req.user.id
+                OR: [
+                    {adminId: req.user.id},
+                    {members: {some: {userId: req.user.id}}}
+                ]
             }
         })
         if(!groups){
@@ -122,7 +137,8 @@ const getGroups = async (req, res) => {
         return res.json({
             status : 500,
             message : "Error while Fetching Groups",
-            error : error
+            error : error,
+            errorMSG : error.message
         })
     }
 }
@@ -131,7 +147,7 @@ const getGroupMembers = async (req, res) => {
     try {
         const members = await prisma.groupMembers.findMany({
             where:{
-                groupId : parseInt(req.params.id)
+                groupId : parseInt(req.params.id) 
             }
         })
 
@@ -141,6 +157,18 @@ const getGroupMembers = async (req, res) => {
                 message : "Members Not Found"
             })
         }
+
+        const ifGroupMember = await prisma.groupMembers.findFirst({
+            where:{
+                groupId : parseInt(req.params.id),
+                userId : req.user.id
+            }
+        }) || group.adminId === req.user.id
+
+        if(!ifGroupMember) return res.status(400).json({
+            status : 400,
+            message : "You are not a Member of this Group"
+        })
 
         return res.status(200).json({
             status : 200,
@@ -171,6 +199,18 @@ const addToGroup = async (req, res) => {
             })
         }
 
+        const ifGroupMember = await prisma.groupMembers.findFirst({
+            where:{
+                userId : req.body.userId,
+                groupId : req.body.groupId
+            }
+        }) || group.adminId === req.user.id
+
+        if(!ifGroupMember) return res.status(400).json({
+            status : 400,
+            message : "You are not a Member of this Group"
+        })
+
         const member = await prisma.groupMembers.create({
             data:{
                 userId : req.body.userId,
@@ -199,4 +239,49 @@ const addToGroup = async (req, res) => {
     }
 }
 
-export {createGroup, getGroup, getGroups, getGroupMembers, addToGroup}
+const removeMember = async (req, res) => {
+    try {
+        const ifGroupMember = await prisma.groupMembers.findFirst({
+            where:{
+                userId : req.body.userId,
+                groupId : req.body.groupId
+            }
+        }) || group.adminId === req.user.id
+
+        if(!ifGroupMember) return res.status(400).json({
+            status : 400,
+            message : "You are not a Member of this Group"
+        })
+
+        console.log(ifGroupMember)
+
+        const member = await prisma.groupMembers.delete({
+            where:{
+                id : ifGroupMember.id
+            }
+        })
+
+        if(!member){
+            return res.status(400).json({
+                status : 400,
+                message : "Error while Removing Member"
+            })
+        }
+
+        return res.status(200).json({
+            status : 200,
+            message : "Member Removed Successfully",
+            member : member
+        })
+    } catch (error) {
+        return res.json({
+            status : 500,
+            message : "Error while Removing Member",
+            error : error,
+            errorMSG : error.message
+        })
+    }
+
+}
+
+export {createGroup, getGroup, getGroups, getGroupMembers, addToGroup, removeMember}
