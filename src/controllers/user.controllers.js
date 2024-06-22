@@ -109,7 +109,26 @@ const logout = async(req, res, next) => {
             success : true
         });
     } catch (error) {
-        console.log("Error while Login", error);
+        console.log("Error while Logout", error);
+        return res.status(500).json({
+            status : 500,
+            message: "Invalid Username or Password",
+            error : error.message
+        })
+    }
+}
+
+// Get all users
+const getAllUsers = async(req, res, next) => {
+    try {
+        const users = await prisma.user.findMany();
+        if(!users) throw new Error ("No Users Found");
+        return res.status(400).json({
+             success : true,
+             users
+        })
+    } catch (error) {
+        console.log("Error while getAllUsers", error);
         return res.status(500).json({
             status : 500,
             message: "Invalid Username or Password",
@@ -120,5 +139,5 @@ const logout = async(req, res, next) => {
 
 
 // export the createUser function
-export { createUser, login, logout };
+export { createUser, login, logout, getAllUsers };
 
