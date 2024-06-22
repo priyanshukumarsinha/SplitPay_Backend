@@ -95,8 +95,8 @@ const login = asyncHandler(async (req, res) => {
     if(!user) throw new ApiError(404, "No user exists with this Email!")
 
     // compare the password
-    const isMatch = compareHash(password, user.password);
-    if(!isMatch) throw new ApiError(401, "Invalid Credentials!");
+    const isPasswordValid = compareHash(password, user.password);
+    if(!isPasswordValid) throw new ApiError(401, "Invalid Credentials!");
 
     // hide password
     user.password = undefined;
@@ -111,21 +111,13 @@ const login = asyncHandler(async (req, res) => {
 });
 
 // logout user
-const logout = async(req, res, next) => {
-    try {
-        res.clearCookie('token').json({
-            status : 201,
-            success : true
-        });
-    } catch (error) {
-        console.log("Error while Logout", error);
-        return res.status(500).json({
-            status : 500,
-            message: "Invalid Username or Password",
-            error : error.message
-        })
-    }
-}
+const logout = asyncHandler(async (req, res) => {
+    // clear the cookie
+    res.clearCookie('token').json({
+        status : 201,
+        success : true
+    });
+});
 
 // Get all users
 const getAllUsers = async(req, res, next) => {
