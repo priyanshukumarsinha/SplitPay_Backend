@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import {router as userRouter} from './routes/user.routes.js'
 import {router as followRouter} from './routes/follow.routes.js'
 import {router as groupRouter} from './routes/group.routes.js'
+import { errorHandler } from './middlewares/errorHandler.middleware.js';
 
 const app = express();
 app.use(
@@ -15,7 +16,6 @@ app.use(
         credentials: true,
     })
 );
-
 
 // parse application/json
 app.use(express.json({ limit: '16kb' }));
@@ -29,8 +29,8 @@ app.use(express.static('public'));
 app.use(cookieParser())
 
 app.use('/api', userRouter)
-app.use('/api', followRouter)
-app.use('/api', groupRouter)
+// app.use('/api', followRouter)
+// app.use('/api', groupRouter)
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -38,9 +38,13 @@ app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
 app.use(bodyParser.json())
 
+// error handler middleware
+app.use(errorHandler());
+
 app.get('/', (req, res) => {
     res.send('Hello World');
 });
+
 
 export { app };
 

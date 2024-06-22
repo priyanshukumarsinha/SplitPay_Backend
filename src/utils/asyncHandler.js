@@ -11,10 +11,12 @@
 // The error handling middleware can then handle the error and send an appropriate response to the client.
 // TODO: Implement the error handling middleware in the API.
 
+import { errorHandler } from "../middlewares/errorHandler.middleware"
+
 const asyncHandler = (requestHandler) => {
     return async (req, res, next) => {
         Promise.resolve(requestHandler(req, res, next))
-            .catch((err) => next(err))
+            .catch((err) => next(errorHandler(err, req, res, next)));
     }
 }
 

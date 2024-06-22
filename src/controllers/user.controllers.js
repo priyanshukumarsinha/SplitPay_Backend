@@ -206,9 +206,32 @@ const getUserByUsername = asyncHandler(async (req, res) => {});
 // change password
 const changePassword = asyncHandler(async (req, res) => {});
 
+// change photoURL
+const changePhotoURL = asyncHandler(async (req, res) => {});
 
+// get list of followers
+const getFollowers = asyncHandler(async (req, res) => {});
+
+// get list of following
+const getFollowing = asyncHandler(async (req, res) => {});
+
+// get list of all groups user is part of
+const getGroups = asyncHandler(async (req, res) => {});
 
 
 // export the functions
-export { createUser, login, logout, updateUser};
+export { 
+    createUser, 
+    login, 
+    logout, 
+    updateUser, 
+    deleteUser, 
+    getCurrentUser, 
+    getUserByUsername, 
+    changePassword, 
+    changePhotoURL, 
+    getFollowers, 
+    getFollowing, 
+    getGroups
+};
 
