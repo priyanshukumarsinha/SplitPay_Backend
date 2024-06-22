@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int           @id @default(autoincrement())
+  firstName       String
+  lastName        String
+  username        String        @unique
+  email           String        @unique
+  password        String
+  phoneNumber     Int
+  isEmailVerified Boolean       @default(false)
+  photoURL        String
+  dob             DateTime
+  followers       Follow[]      @relation("Followers")
+  following       Follow[]      @relation("Following")
+  groups          Group[]       @relation("GroupMembers")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  Group           Group[]
+  Sender          Transaction[] @relation("Sender")
+  Receiver        Transaction[] @relation("Receiver")
+  Author          message[]     @relation("Author")
+}
+
+model Follow {
+  id          Int      @id @default(autoincrement())
+  follower    User     @relation(fields: [followerId], references: [id], name: "Followers")
+  followerId  Int
+  following   User     @relation(fields: [followingId], references: [id], name: "Following")
+  followingId Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Group {
+  id           Int           @id @default(autoincrement())
+  name         String
+  description  String
+  adminId      Int
+  members      User[]        @relation(name:"GroupMembers")
+  admin        User          @relation(fields: [adminId], references: [id])
+  transactions Transaction[]
+  currecy      Currencies    @default(INR)
+  groupTypes   GroupTypes    @default(PUBLIC)
+  GroupMsg     message[]     @relation("GroupMsg")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+enum GroupTypes {
+  PUBLIC
+  PRIVATE
+}
+
+model Transaction {
+  id            Int            @id @default(autoincrement())
+  amount        Float
+  senderId      Int
+  sender        User           @relation(fields: [senderId], references: [id], name: "Sender")
+  receiverId    Int
+  receiver      User           @relation(fields: [receiverId], references: [id], name: "Receiver")
+  groupId       Int
+  group         Group          @relation(fields: [groupId], references: [id])
+  paymentMethod paymentMathods @default(Cash)
+  status        Status         @default(PENDING)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model message {
+  id         Int      @id @default(autoincrement())
+  senderId   Int
+  sender     User     @relation(fields: [senderId], references: [id], name: "Author")
+  receiverId Int
+  group      Group    @relation(fields: [receiverId], references: [id], name: "GroupMsg")
+  message    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+enum Status {
+  SUCCESS
+  PENDING
+  FAILED
+}
+
+enum paymentMathods {
+  Credit_Card
+  Debit_Card
+  UPI
+  Cash
+}
+
+enum Currencies {
+  INR
+  USD
+}
