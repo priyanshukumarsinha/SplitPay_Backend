@@ -158,6 +158,12 @@ const getGroupMembers = async (req, res) => {
             })
         }
 
+        const group = await prisma.group.findFirst({
+            where:{
+                id : parseInt(req.params.id)
+            }
+        })
+
         const ifGroupMember = await prisma.groupMembers.findFirst({
             where:{
                 groupId : parseInt(req.params.id),
@@ -198,6 +204,12 @@ const addToGroup = async (req, res) => {
                 message : "Member Already Exists"
             })
         }
+
+        const group = await prisma.group.findFirst({
+            where:{
+                id : req.body.groupId
+            }
+        })
 
         const ifGroupMember = await prisma.groupMembers.findFirst({
             where:{
@@ -241,19 +253,29 @@ const addToGroup = async (req, res) => {
 
 const removeMember = async (req, res) => {
     try {
+        const group = await prisma.group.findFirst({
+            where:{
+                id : req.body.groupId
+            }
+        })
+
+        if(!group) return res.status(400).json({
+            status : 400,
+            message : "Group Not Found"
+        })
+
         const ifGroupMember = await prisma.groupMembers.findFirst({
             where:{
                 userId : req.body.userId,
                 groupId : req.body.groupId
             }
-        }) || group.adminId === req.user.id
+        }) 
 
-        if(!ifGroupMember) return res.status(400).json({
+        if(!(group.adminId === req.user.id || ifGroupMember)) return res.status(400).json({
+            // if not a member
             status : 400,
             message : "You are not a Member of this Group"
-        })
-
-        console.log(ifGroupMember)
+        }) 
 
         const member = await prisma.groupMembers.delete({
             where:{
@@ -276,7 +298,7 @@ const removeMember = async (req, res) => {
     } catch (error) {
         return res.json({
             status : 500,
-            message : "Error while Removing Member",
+            message : "Member Not Found",
             error : error,
             errorMSG : error.message
         })
