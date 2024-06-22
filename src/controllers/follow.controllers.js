@@ -46,6 +46,55 @@ const followUser = async (req, res) => {
     }
 }
 
+const getMyFollowers = async (req, res) => {
+    try {
+            const followers = await prisma.follow.findMany({
+                where:{
+                    followingId : req.user.id
+                }
+            })
+            if(!followers || followers.length === 0) throw new Error ("No Followers Found");
+
+            return res.status(200).json({
+                status : 200,
+                message : "Followers Fetched Successfully",
+                followers : followers,
+                count : followers.length
+            })
+    } catch (error) {
+        return res.json({
+            status : 500,
+            message : "Error while Getting Followers",
+            error : error.message
+        })
+    }
+}
+
+const getMyFollowing = async (req, res) => {
+    try {
+            const following = await prisma.follow.findMany({
+                where:{
+                    followerId : req.user.id
+                }
+            })
+            if(!following || following.length === 0) throw new Error ("Not Following Anyone");
+
+            return res.status(200).json({
+                status : 200,
+                message : "Following Fetched Successfully",
+                following : following,
+                count : following.length
+            })
+    } catch (error) {
+        return res.json({
+            status : 500,
+            message : "Error while Getting Following",
+            error : error.message
+        })
+    }
+
+}
 
 
-export {followUser}
+
+export {followUser, getMyFollowers, getMyFollowing}
