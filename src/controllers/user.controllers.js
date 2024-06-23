@@ -190,7 +190,7 @@ const login = asyncHandler(async (req, res) => {
               .json(response);
 });
 
-// logout user
+// logout user : testing done
 const logout = asyncHandler(async (req, res) => {
     // remove the Refresh Token from the Database
     // we are removing the Refresh Token from the Database so that the user cannot generate new Access Token
