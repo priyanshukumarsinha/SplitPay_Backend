@@ -218,7 +218,54 @@ const logout = asyncHandler(async (req, res) => {
 });
 
 // update user details
-const updateUser = asyncHandler(async (req, res) => {});
+const updateUser = asyncHandler(async (req, res) => {
+    // take information from req.body or use the existing information
+    // we are using the existing information if the user does not provide the information
+    // where to get the existing information? from the req.user object
+    const { firstName , lastName, username, email, phoneNumber, photoURL, dob } = req.body;
+
+    // check if username or email already exists
+    const userExists = await prisma.user.findFirst({
+        where : { OR : [{email}, {username}] }
+    });
+
+    if(userExists) throw new ApiError(500, "User Already Exists with this Email or Username, Please Choose Another One");
+
+
+
+    // update the user
+    const user = await prisma.user.update({
+        where : {
+            id : req.user.id
+        },
+        data : {
+            firstName : firstName ? firstName.trim() : req.user.firstName,
+            lastName : lastName ? lastName.trim() : req.user.lastName,
+            username : username ? username.trim().toLowerCase() : req.user.username,
+            email : email ? email.trim().toLowerCase() : req.user.email,
+            phoneNumber : phoneNumber || req.user.phoneNumber || null,
+            photoURL : photoURL || req.user.photoURL || "https://www.gravatar.com/avatar/",
+            dob : dob || req.user.dob || new Date('01/01/2000')
+        },
+        select : {
+            id : true,
+            firstName : true,
+            lastName : true,
+            username : true,
+            email : true,
+            phoneNumber : true,
+            isEmailVerified : true,
+            photoURL : true,
+            dob : true,
+            password : false,
+            refreshToken : false
+        }
+    });
+
+    // send response
+    const response = new ApiResponse(200, {user}, "User Updated Successfully");
+    return res.status(200).json(response);
+});
 
 // delete user
 const deleteUser = asyncHandler(async (req, res) => {
@@ -231,11 +278,38 @@ const deleteUser = asyncHandler(async (req, res) => {
 
     // send response
     const response = new ApiResponse(200, {}, "User Deleted Successfully");
-    return res.status(200).json(response);
+    return res.status(200)
+              .clearCookie('accessToken', options)
+              .clearCookie('refreshToken', options)
+              .json(response);
 });
 
 // get Current User Details
-const getCurrentUser = asyncHandler(async (req, res) => {});
+const getCurrentUser = asyncHandler(async (req, res) => {
+    // get the user details
+    const user = await prisma.user.findUnique({
+        where : {
+            id : req.user.id
+        },
+        select : {
+            id : true,
+            firstName : true,
+            lastName : true,
+            username : true,
+            email : true,
+            phoneNumber : true,
+            isEmailVerified : true,
+            photoURL : true,
+            dob : true,
+            password : false,
+            refreshToken : false
+        }
+    });
+
+    // send response
+    const response = new ApiResponse(200, {user}, "User Details Fetched Successfully");
+    return res.status(200).json(response);
+});
 
 // get User Details by Username
 const getUserByUsername = asyncHandler(async (req, res) => {});
