@@ -109,6 +109,7 @@ const createUser = asyncHandler(async (req, res) => {
             id : user.id
         },
         select : {
+            id : true,
             firstName : true,
             lastName : true,
             username : true,
@@ -132,7 +133,7 @@ const createUser = asyncHandler(async (req, res) => {
 });
 
 
-// Login user
+// Login user : testing done
 const login = asyncHandler(async (req, res) => {
     // take information from req.body
     const {username, email, password} = req.body;
@@ -195,6 +196,7 @@ const logout = asyncHandler(async (req, res) => {
     // we are removing the Refresh Token from the Database so that the user cannot generate new Access Token
     // Even after the user logs out, the Access Token is still valid until it expires
     // But the user cannot generate new Access Token after logging out because the Refresh Token is removed from the Database
+    
     await prisma.user.update({
         where : {
             id : req.user.id
@@ -203,6 +205,7 @@ const logout = asyncHandler(async (req, res) => {
             refreshToken : null
         }
     });
+
 
     // send response
     // we are sending the response with the message that the user is logged out

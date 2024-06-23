@@ -1,6 +1,9 @@
 // This middleware is used to check if the user is authenticated or not
 
 import { asyncHandler } from "../utils/AsyncHandler.js";
+import jwt from "jsonwebtoken";
+import { prisma } from "../../prisma/index.js"
+import { ApiError } from "../utils/ApiError.js";
 
 // when the user is logged in we set the req.user to the user object
 // if the user is not logged in we set req.user to null
@@ -40,11 +43,13 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
     // check if the accessToken is present
     if(!accessToken) {
         // send the error response
-        return next(new ApiError(401, "Unauthorized"));
+        throw new ApiError(401, "Unauthorized, Login to access this route");
     }
+
 
     // get decoded user from the accessToken
     const decodedUser = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+
     // what is this jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET) doing?
     // we are verifying the accessToken using the ACCESS_TOKEN_SECRET
     // what is the ACCESS_TOKEN_SECRET? It is the secret key that is used to sign the accessToken
@@ -56,9 +61,18 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
     // get the user from the database
     const user = await prisma.user.findUnique({
         where : {
-            id : decodedUser.userID
+            id : decodedUser.id
         },
         select : {
+            id : true,
+            firstName : true,
+            lastName : true,
+            username : true,
+            email : true,
+            phoneNumber : true,
+            isEmailVerified : true,
+            photoURL : true,
+            dob : true,
             password : false,
             refreshToken : false
         }
