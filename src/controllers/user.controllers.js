@@ -1,14 +1,8 @@
 // bring in Prisma
 import {prisma} from '../../prisma/index.js'
-import { ApiError } from '../utils/ApiError.js';
-import { ApiResponse } from '../utils/ApiResponse.js';
-import { asyncHandler } from '../utils/AsyncHandler.js';
+import { ApiError, ApiResponse, asyncHandler, generateAccessToken, generateRefreshToken } from '../utils/index.js'
 
-// import the cookieToken function
-import { generateAccessToken } from '../utils/generateAccessToken.js';
-import { generateRefreshToken } from '../utils/generateRefreshToken.js';
-
-import bcrypt, { compare, hash } from 'bcrypt'
+import bcrypt from 'bcrypt'
 import { options } from '../constants.js';
 
 // Hash
@@ -359,6 +353,9 @@ const changePassword = asyncHandler(async (req, res) => {
 
     // check if oldPassword and newPassword is provided
     if(!oldPassword || !newPassword) throw new ApiError(404, "Please Provide Old Password and New Password");
+
+    // check if oldPassword is same as newPassword
+    if(oldPassword === newPassword) throw new ApiError(401, "Old Password and New Password Cannot be same");
 
     // get the user details
     const user = await prisma.user.findUnique({
