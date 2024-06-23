@@ -141,15 +141,15 @@ const login = asyncHandler(async (req, res) => {
     // Check for username email and password
     if((!email && !username) || !password) throw new ApiError(401, "Please Provide all Fields");
 
+    // query
+    const query = email ? {email} : {username};
+
     // find a user based on email or username
     // we are using OR condition to find the user based on email or username
     // if the user is found, we will not return the password and refresh token
     // if the user is not found, we will throw an error
     const user = await prisma.user.findUnique({
-        where : { 
-            email : email,
-            OR : [{username}] 
-        },
+        where : query,
         select : {
             id : true,
             firstName : true,
@@ -221,7 +221,18 @@ const logout = asyncHandler(async (req, res) => {
 const updateUser = asyncHandler(async (req, res) => {});
 
 // delete user
-const deleteUser = asyncHandler(async (req, res) => {});
+const deleteUser = asyncHandler(async (req, res) => {
+    // delete the user
+    const user = await prisma.user.delete({
+        where : {
+            id : req.user.id
+        }
+    });
+
+    // send response
+    const response = new ApiResponse(200, {}, "User Deleted Successfully");
+    return res.status(200).json(response);
+});
 
 // get Current User Details
 const getCurrentUser = asyncHandler(async (req, res) => {});
