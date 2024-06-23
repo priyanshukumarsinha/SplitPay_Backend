@@ -14,13 +14,13 @@ import { options } from '../constants.js';
 // Hash
 const hashData = async (data) => {
     const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(toString(data), salt);
+    const hash = await bcrypt.hash(data, salt);
     return hash;
 }
 
 // Compare Hash
 const compareHash = async (data, hash) => {
-    const compare = await bcrypt.compare(toString(data), toString(hash));
+    const compare = await bcrypt.compare(data, hash);
     return compare;
 }
 
@@ -160,7 +160,7 @@ const login = asyncHandler(async (req, res) => {
             isEmailVerified : true,
             photoURL : true,
             dob : true,
-            password : false,
+            password : true,
             refreshToken : false
         },
     })
@@ -169,7 +169,7 @@ const login = asyncHandler(async (req, res) => {
     if(!user) throw new ApiError(404, "No user exists with this Email!")
 
     // compare the password
-    const isPasswordValid = compareHash(password, user.password);
+    const isPasswordValid = await compareHash(password, user.password);
     if(!isPasswordValid) throw new ApiError(401, "Invalid Credentials!");
 
     // hide password
@@ -353,7 +353,53 @@ const getUserByUsername = asyncHandler(async (req, res) => {
 });
 
 // change password
-const changePassword = asyncHandler(async (req, res) => {});
+const changePassword = asyncHandler(async (req, res) => {
+    // take information from req.body
+    const {oldPassword, newPassword} = req.body;
+
+    // check if oldPassword and newPassword is provided
+    if(!oldPassword || !newPassword) throw new ApiError(404, "Please Provide Old Password and New Password");
+
+    // get the user details
+    const user = await prisma.user.findUnique({
+        where : {
+            id : req.user.id
+        }
+    });
+
+    console.log(user.password)
+
+    // compare the old password
+    const isPasswordValid = compareHash(oldPassword, user.password);
+    if(!isPasswordValid) throw new ApiError(401, "Invalid Old Password");
+
+    // update the password
+    const updatedUser = await prisma.user.update({
+        where : {
+            id : req.user.id
+        },
+        data : {
+            password : await hashData(newPassword)
+        },
+        select : {
+            id : true,
+            firstName : true,
+            lastName : true,
+            username : true,
+            email : true,
+            phoneNumber : true,
+            isEmailVerified : true,
+            photoURL : true,
+            dob : true,
+            password : false,
+            refreshToken : false
+        }
+    });
+
+    // send response
+    const response = new ApiResponse(200, {updatedUser}, "Password Changed Successfully");
+    return res.status(200).json(response);
+});
 
 // change photoURL
 const changePhotoURL = asyncHandler(async (req, res) => {});
