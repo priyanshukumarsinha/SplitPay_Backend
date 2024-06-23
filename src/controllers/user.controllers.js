@@ -217,7 +217,7 @@ const logout = asyncHandler(async (req, res) => {
               .json(response);
 });
 
-// update user details
+// update user details : testing done
 const updateUser = asyncHandler(async (req, res) => {
     // take information from req.body or use the existing information
     // we are using the existing information if the user does not provide the information
@@ -267,7 +267,7 @@ const updateUser = asyncHandler(async (req, res) => {
     return res.status(200).json(response);
 });
 
-// delete user
+// delete user : testing done
 const deleteUser = asyncHandler(async (req, res) => {
     // delete the user
     const user = await prisma.user.delete({
@@ -284,7 +284,7 @@ const deleteUser = asyncHandler(async (req, res) => {
               .json(response);
 });
 
-// get Current User Details
+// get Current User Details : testing done
 const getCurrentUser = asyncHandler(async (req, res) => {
     // get the user details
     const user = await prisma.user.findUnique({
@@ -312,7 +312,45 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 // get User Details by Username
-const getUserByUsername = asyncHandler(async (req, res) => {});
+const getUserByUsername = asyncHandler(async (req, res) => {
+    // get the username from the params
+    const {username} = req.params;
+
+    // check if username is provided
+    // if we don't receive the username, we won't even come to this function
+    // because the route is defined as /user/:username
+    // so, the username is mandatory
+    // but still we are checking if the username is provided or not
+    // which might happen, if the route is changed in the future
+    if(!username) throw new ApiError(404, "Please Provide a Username");
+
+    // get the user details
+    const user = await prisma.user.findUnique({
+        where : {
+            username
+        },
+        select : {
+            id : true,
+            firstName : true,
+            lastName : true,
+            username : true,
+            email : true,
+            phoneNumber : true,
+            isEmailVerified : true,
+            photoURL : true,
+            dob : true,
+            password : false,
+            refreshToken : false
+        }
+    });
+
+    // throw error if user is not found
+    if(!user) throw new ApiError(404, "No User Found with this Username");
+
+    // send response
+    const response = new ApiResponse(200, {user}, "User Details Fetched Successfully");
+    return res.status(200).json(response);
+});
 
 // change password
 const changePassword = asyncHandler(async (req, res) => {});
