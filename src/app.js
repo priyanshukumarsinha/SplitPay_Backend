@@ -39,7 +39,7 @@ app.use('/api', followRouter)
 
 // The third route is the /api/group route which is handled by the groupRouter.
 // This route will handle all the group-related routes.
-// app.use('/api', groupRouter)
+app.use('/api', groupRouter)
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
