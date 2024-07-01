@@ -27,8 +27,18 @@ app.use(express.static('public'));
 
 app.use(cookieParser())
 
+
+// Routes
+// The first route is the /api/user route which is handled by the userRouter.
+// This route will handle all the user-related routes.
 app.use('/api/user', userRouter)
-// app.use('/api', followRouter)
+
+// The second route is the /api/follow route which is handled by the followRouter.
+// This route will handle all the follow-related routes.
+app.use('/api', followRouter)
+
+// The third route is the /api/group route which is handled by the groupRouter.
+// This route will handle all the group-related routes.
 // app.use('/api', groupRouter)
 
 // parse application/x-www-form-urlencoded
