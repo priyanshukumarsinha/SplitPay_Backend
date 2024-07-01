@@ -439,18 +439,30 @@ const getFollowing = asyncHandler(async (req, res) => {
 
 // get list of all groups user is part of
 const getGroups = asyncHandler(async (req, res) => {
-    // get the user details
-    const user = await prisma.user.findUnique({
+
+    // get the data from group table where the user is part of the group
+    const groups = await prisma.groupMembers.findMany({
         where : {
-            id : req.user.id
+            userId : req.user.id
         },
         select : {
-            Group : true
+            groupId : true
         }
     });
 
+
+    // replace the groupId with the group details
+    for(let i=0; i<groups.length; i++) {
+        const group = await prisma.group.findUnique({
+            where : {
+                id : groups[i].groupId
+            }
+        });
+        groups[i] = group;
+    }
+
     // send response
-    const response = new ApiResponse(200, {groups : user.groups}, "Groups Fetched Successfully");
+    const response = new ApiResponse(200, groups, "Groups Fetched Successfully");
     return res.status(200).json(response);
 });
 
