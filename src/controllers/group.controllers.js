@@ -1,7 +1,7 @@
 import {prisma} from '../../prisma/index.js'
 import { ApiError, ApiResponse, asyncHandler} from '../utils/index.js'
 
-// createGroup to create a new group : POST /api/group/create
+// createGroup to create a new group : POST /api/group/create : testing done
 const createGroup = asyncHandler(async (req, res) => {
     // Check if all details are provided : name and amount are necessary
     if (!req.body.name || !req.body.amount) {
@@ -101,7 +101,7 @@ const createGroup = asyncHandler(async (req, res) => {
     
 });
 
-// getGroup to get a group : GET /api/group/:id
+// getGroup to get a group : GET /api/group/:id : testing done
 const getGroup = asyncHandler(async (req, res) => {
     // Check if the id is provided
     if (!req.params.id) {
@@ -173,221 +173,154 @@ const getGroup = asyncHandler(async (req, res) => {
     return res.status(200).json(response);
 });
 
-
-
-const getGroups = async (req, res) => {
-    try {
-        const groups = await prisma.group.findMany({
-            where:{
-                OR: [
-                    {adminId: req.user.id},
-                    {members: {some: {userId: req.user.id}}}
-                ]
-            }
-        })
-        if(!groups){
-            return res.status(400).json({
-                status : 400,
-                message : "Groups Not Found"
-            })
-        }
-
-        return res.status(200).json({
-            status : 200,
-            groups : groups
-        })
-    } catch (error) {
-        return res.json({
-            status : 500,
-            message : "Error while Fetching Groups",
-            error : error,
-            errorMSG : error.message
-        })
-    }
-}
-
-const getGroupMembers = async (req, res) => {
-    try {
-        const members = await prisma.groupMembers.findMany({
-            where:{
-                groupId : parseInt(req.params.id) 
-            }
-        })
-
-        if(!members){
-            return res.status(400).json({
-                status : 400,
-                message : "Members Not Found"
-            })
-        }
-
-        const group = await prisma.group.findFirst({
-            where:{
-                id : parseInt(req.params.id)
-            }
-        })
-
-        const ifGroupMember = await prisma.groupMembers.findFirst({
-            where:{
-                groupId : parseInt(req.params.id),
-                userId : req.user.id
-            }
-        }) || group.adminId === req.user.id
-
-        if(!ifGroupMember) return res.status(400).json({
-            status : 400,
-            message : "You are not a Member of this Group"
-        })
-
-        return res.status(200).json({
-            status : 200,
-            members : members
-        })
-    } catch (error) {
-        return res.json({
-            status : 500,
-            message : "Error while Fetching Members",
-            error : error
-        })
-    }
-}
-
-const addToGroup = async (req, res) => {
-    try {
-        const existingMember = await prisma.groupMembers.findFirst({
-            where:{
-                userId : req.body.userId,
-                groupId : req.body.groupId
-            }
-        })
-
-        if(existingMember){
-            return res.status(400).json({
-                status : 400,
-                message : "Member Already Exists"
-            })
-        }
-
-        const group = await prisma.group.findFirst({
-            where:{
-                id : req.body.groupId
-            }
-        })
-
-        const ifGroupMember = await prisma.groupMembers.findFirst({
-            where:{
-                userId : req.body.userId,
-                groupId : req.body.groupId
-            }
-        }) || group.adminId === req.user.id
-
-        if(!ifGroupMember) return res.status(400).json({
-            status : 400,
-            message : "You are not a Member of this Group"
-        })
-
-        const totalMembers = await prisma.groupMembers.findMany({
-            where:{
-                groupId : req.body.groupId
-            }
-        })
-
-        const share = group.amount / (totalMembers.length+2)
-
-        // update share in all groupmember
-        totalMembers.forEach(async (member) => {
-            await prisma.groupMembers.update({
-                where:{
-                    id : member.id
-                },
-                data:{
-                    share : share
-                }
-            })
-        })
-
-        const member = await prisma.groupMembers.create({
-            data:{
-                userId : req.body.userId,
-                groupId : req.body.groupId,
-                share : share
-            }
-        })
-
-        if(!member){
-            return res.status(400).json({
-                status : 400,
-                message : "Error while Adding Member"
-            })
-        }
-
-        return res.status(200).json({
-            status : 200,
-            message : "Member Added Successfully",
-            member : member
-        })
-    } catch (error) {
-        return res.json({
-            status : 500,
-            message : "Error while Adding Member",
-            error : error
-        })
-    }
-}
-
-const removeMember = async (req, res) => {
-    try {
-        const group = await prisma.group.findFirst({
-            where:{
-                id : req.body.groupId
-            }
-        })
-
-        if(!group) return res.status(400).json({
-            status : 400,
-            message : "Group Not Found"
-        })
-
-        const ifGroupMember = await prisma.groupMembers.findFirst({
-            where:{
-                userId : req.body.userId,
-                groupId : req.body.groupId
-            }
-        }) 
-
-        if(!(group.adminId === req.user.id || ifGroupMember)) return res.status(400).json({
-            // if not a member
-            status : 400,
-            message : "You are not a Member of this Group"
-        }) 
-
-        const member = await prisma.groupMembers.delete({
-            where:{
-                id : ifGroupMember.id
-            }
-        })
-
-        if(!member){
-            return res.status(400).json({
-                status : 400,
-                message : "Error while Removing Member"
-            })
-        }
-
-        return res.status(200).json({
-            status : 200,
-            message : "Member Removed Successfully",
-            member : member
-        })
-    } catch (error) {
-        return res.json({
-            status : 500,
-            message : "Member Not Found",
-            error : error,
-            errorMSG : error.message
-        })
+// addToGroup to add a member to a group : POST /api/group/add
+const addToGroup = asyncHandler(async (req, res) => {
+    // Check if the user id and group id are provided
+    if (!req.body.userId || !req.body.groupId) {
+        throw new ApiError(400, 'Please provide the user id and group id');
     }
 
-}
+    // Check if the member already exists
+    const existingMember = await prisma.groupMembers.findFirst({
+        where: {
+            userId: req.body.userId,
+            groupId: req.body.groupId,
+        },
+    });
 
-export {createGroup, getGroup, getGroups, getGroupMembers, addToGroup, removeMember}
+    if (existingMember) {
+        throw new ApiError(400, 'Member already exists');
+    }
+
+    // Find the group
+    const group = await prisma.group.findFirst({
+        where: {
+            id: req.body.groupId,
+        },
+    });
+
+    // Check if the user is a member of the group
+    const ifGroupMember = await prisma.groupMembers.findFirst({
+        where: {
+            userId: req.user.id,
+            groupId: req.body.groupId,
+        }
+    })
+
+    if (!ifGroupMember) {
+        throw new ApiError(400, 'You are not a member of this group');
+    }
+
+    // Update Share of all Members
+    const totalMembers = await prisma.groupMembers.findMany({
+        where: {
+            groupId: group.id,
+        },
+    });
+
+    const share = group.amount / (totalMembers.length);
+
+    // Update share in all groupMembers
+    totalMembers.forEach(async (member) => {
+        await prisma.groupMembers.update({
+            where: {
+                id: member.id,
+            },
+            data: {
+                share: share,
+            },
+        });
+    });
+
+    // Add the member to the group
+    const member = await prisma.groupMembers.create({
+        data: {
+            userId: req.body.userId,
+            groupId: req.body.groupId,
+            share: share,
+        },
+    });
+
+    // Check if the member was added
+    if (!member) {
+        throw new ApiError(500, 'Error while adding the member');
+    }
+
+    // Send the response
+    const response = new ApiResponse(200, member, 'Member added successfully');
+    return res.status(200).json(response);
+});
+
+// removeMember to remove a member from a group : DELETE /api/group/remove
+const removeMember = asyncHandler(async (req, res) => {
+    // Check if the user id and group id are provided
+    if (!req.body.userId || !req.body.groupId) {
+        throw new ApiError(400, 'Please provide the user id and group id');
+    }
+
+    // Find the group
+    const group = await prisma.group.findFirst({
+        where: {
+            id: req.body.groupId,
+        },
+    });
+
+    // Check if the user is a member of the group
+    const ifGroupMember = await prisma.groupMembers.findFirst({
+        where: {
+            userId: req.user.id,
+            groupId: req.body.groupId,
+        }
+    })
+
+    if (!ifGroupMember) {
+        throw new ApiError(400, 'You are not a member of this group');
+    }
+
+    // find groupMember instance id
+    const groupMember = await prisma.groupMembers.findFirst({
+        where: {
+            userId: req.body.userId,
+            groupId: req.body.groupId,
+        },
+    });
+
+    // Remove the member from the group
+    const member = await prisma.groupMembers.delete({
+        where: {
+            id: groupMember.id,
+        },
+    });
+
+    // Check if the member was removed
+    if (!member) {
+        throw new ApiError(500, 'Error while removing the member');
+    }
+
+    // Update Share of all Members
+    const totalMembers = await prisma.groupMembers.findMany({
+        where: {
+            groupId: group.id,
+        },
+    });
+
+    const share = group.amount / (totalMembers.length);
+
+    // Update share in all groupMembers
+    totalMembers.forEach(async (member) => {
+        await prisma.groupMembers.update({
+            where: {
+                id: member.id,
+            },
+            data: {
+                share: share,
+            },
+        });
+    });
+
+    // Send the response
+    const response = new ApiResponse(200, member, 'Member removed successfully');
+    return res.status(200).json(response);
+});
+
+export {createGroup, getGroup, addToGroup, removeMember}
