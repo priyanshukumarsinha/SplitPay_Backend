@@ -399,7 +399,9 @@ const changePassword = asyncHandler(async (req, res) => {
 });
 
 // change photoURL
-const changePhotoURL = asyncHandler(async (req, res) => {});
+const changePhotoURL = asyncHandler(async (req, res) => {
+  // Implementation code goes here
+});
 
 // get list of followers
 const getFollowers = asyncHandler(async (req, res) => {});
@@ -408,7 +410,21 @@ const getFollowers = asyncHandler(async (req, res) => {});
 const getFollowing = asyncHandler(async (req, res) => {});
 
 // get list of all groups user is part of
-const getGroups = asyncHandler(async (req, res) => {});
+const getGroups = asyncHandler(async (req, res) => {
+    // get the user details
+    const user = await prisma.user.findUnique({
+        where : {
+            id : req.user.id
+        },
+        select : {
+            Group : true
+        }
+    });
+
+    // send response
+    const response = new ApiResponse(200, {groups : user.groups}, "Groups Fetched Successfully");
+    return res.status(200).json(response);
+});
 
 // verify email
 const verifyEmail = asyncHandler(async (req, res) => {});
