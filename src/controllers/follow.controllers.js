@@ -62,55 +62,62 @@ const followUser = asyncHandler(async (req, res) => {
 
 });
 
-const getMyFollowers = async (req, res) => {
-    try {
-            const followers = await prisma.follow.findMany({
-                where:{
-                    followingId : req.user.id
-                }
-            })
-            if(!followers || followers.length === 0) throw new Error ("No Followers Found");
+// unfolow a user : DELETE /api/unfollow/:username
+const unfollowUser = asyncHandler(async (req, res) => {
+    // Get the username from the params
+    const { username } = req.params;
 
-            return res.status(200).json({
-                status : 200,
-                message : "Followers Fetched Successfully",
-                followers : followers,
-                count : followers.length
-            })
-    } catch (error) {
-        return res.json({
-            status : 500,
-            message : "Error while Getting Followers",
-            error : error.message
-        })
-    }
-}
-
-const getMyFollowing = async (req, res) => {
-    try {
-            const following = await prisma.follow.findMany({
-                where:{
-                    followerId : req.user.id
-                }
-            })
-            if(!following || following.length === 0) throw new Error ("Not Following Anyone");
-
-            return res.status(200).json({
-                status : 200,
-                message : "Following Fetched Successfully",
-                following : following,
-                count : following.length
-            })
-    } catch (error) {
-        return res.json({
-            status : 500,
-            message : "Error while Getting Following",
-            error : error.message
-        })
+    // Check if the username is provided
+    if (!username) {
+        throw new ApiError(400, 'Please provide a username to unfollow');
     }
 
-}
+    // Find the user with the username
+    const user = await prisma.user.findUnique({
+        where: {
+            username,
+        },
+    });
 
+    // Check if the user exists
+    if (!user) {
+        throw new ApiError(404, 'User not found');
+    }
 
+    // Check if the user is trying to unfollow themselves
+    if (user.id === req.user.id) {
+        throw new ApiError(400, 'You cannot unfollow yourself');
+    }
 
-export {followUser, getMyFollowers, getMyFollowing}
+    // Check if the user is following the user
+    const following = await prisma.follow.findFirst({
+        where: {
+            followerId: req.user.id,
+            followingId: user.id,
+        },
+    });
+
+    if (!following) {
+        throw new ApiError(400, 'You are not following this user');
+    }
+
+    // Unfollow the user
+
+    const unfollow = await prisma.follow.delete({
+        where: {
+            id: following.id,
+        },
+    });
+
+    // Check if the unfollow was successful
+
+    if (!unfollow) {
+        throw new ApiError(500, 'Error while unfollowing the user');
+    }
+
+    // Send the response
+    const response = new ApiResponse(200, unfollow, "User Unfollowed Successfully");
+    return res.status(200).json(response);
+});
+
+export {followUser, unfollowUser}
