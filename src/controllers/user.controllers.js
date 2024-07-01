@@ -404,10 +404,38 @@ const changePhotoURL = asyncHandler(async (req, res) => {
 });
 
 // get list of followers
-const getFollowers = asyncHandler(async (req, res) => {});
+const getFollowers = asyncHandler(async (req, res) => {
+    // check the follower table and find the followers of the user
+    const followers = await prisma.follow.findMany({
+        where : {
+            followingId : req.user.id
+        },
+        select : {
+            follower : true
+        }
+    });
+
+    // send response
+    const response = new ApiResponse(200, followers, "Followers Fetched Successfully");
+    return res.status(200).json(response);
+});
 
 // get list of following
-const getFollowing = asyncHandler(async (req, res) => {});
+const getFollowing = asyncHandler(async (req, res) => {
+    // check the follow table and find the following of the user
+    const following = await prisma.follow.findMany({
+        where : {
+            followerId : req.user.id
+        },
+        select : {
+            following : true
+        }
+    });
+
+    // send response
+    const response = new ApiResponse(200, following, "Following Fetched Successfully");
+    return res.status(200).json(response);
+});
 
 // get list of all groups user is part of
 const getGroups = asyncHandler(async (req, res) => {
