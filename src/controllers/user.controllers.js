@@ -5,6 +5,7 @@ import { ApiError, ApiResponse, asyncHandler, generateAccessToken, generateRefre
 import bcrypt from 'bcrypt'
 import { options } from '../constants.js';
 
+
 // Hash
 const hashData = async (data) => {
     const salt = await bcrypt.genSalt(10);
@@ -177,7 +178,7 @@ const login = asyncHandler(async (req, res) => {
     // we are sending the Access Token in the response and storing the Refresh Token in the HttpOnly Cookie
     // we are also storing the Refresh Token in the Database for future use to generate new Access Token
     // we are not storing the Access Token in the Database because it is not required 
-    const response = new ApiResponse(200, {user}, "User Logged In Successfully");
+    const response = new ApiResponse(200, {user, accessToken, refreshToken}, "User Logged In Successfully");
     return res.status(200)
               .cookie('accessToken', accessToken, options)
               .cookie('refreshToken', refreshToken, options)
@@ -461,6 +462,41 @@ const getGroups = asyncHandler(async (req, res) => {
         groups[i] = group;
     }
 
+    // add members to the groups
+    for(let i=0; i<groups.length; i++) {
+        const members = await prisma.groupMembers.findMany({
+            where : {
+                groupId : groups[i].id
+            },
+            select : {
+                userId : true
+            }
+        });
+        // find that user
+        for(let j=0; j<members.length; j++) {
+            const user = await prisma.user.findUnique({
+                where : {
+                    id : members[j].userId
+                },
+                select : {
+                    id : true,
+                    firstName : true,
+                    lastName : true,
+                    username : true,
+                    email : true,
+                    phoneNumber : true,
+                    isEmailVerified : true,
+                    photoURL : true,
+                    dob : true,
+                    password : false,
+                    refreshToken : false
+                }
+            });
+            members[j] = user;
+        }
+        groups[i].members = members;
+    }
+
     // send response
     const response = new ApiResponse(200, groups, "Groups Fetched Successfully");
     return res.status(200).json(response);
@@ -468,6 +504,26 @@ const getGroups = asyncHandler(async (req, res) => {
 
 // verify email
 const verifyEmail = asyncHandler(async (req, res) => {});
+
+// get groupMembers
+const getGroupMembers = asyncHandler(async (req, res) => {
+    // get the groupId from the params
+    const {groupId} = req.params;
+
+    // check if groupId is provided
+    if(!groupId) throw new ApiError(404, "Please Provide a Group Id");
+
+    // get the group members
+    const groupMembers = await prisma.groupMembers.findMany({
+        where : {
+            groupId : parseInt(groupId)
+        }
+    });
+
+    // send response
+    const response = new ApiResponse(200, groupMembers, "Group Members Fetched Successfully");
+    return res.status(200).json(response);
+});
 
 
 // export the functions
@@ -484,6 +540,7 @@ export {
     getFollowers, 
     getFollowing, 
     getGroups,
-    verifyEmail
+    verifyEmail,
+    getGroupMembers
 };
 

@@ -1,6 +1,6 @@
 // This middleware is used to check if the user is authenticated or not
 
-import { asyncHandler } from "../utils/AsyncHandler.js";
+import { asyncHandler } from "../utils/index.js";
 import jwt from "jsonwebtoken";
 import { prisma } from "../../prisma/index.js"
 import { ApiError } from "../utils/ApiError.js";
@@ -26,6 +26,7 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
 
     // get the accessToken from the cookies
     const accessToken = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
+    // console.log("accessToken", req.cookies)
     // what is this req.header("Authorization")?.replace("Bearer ", "") doing?
     // we are getting the Authorization header from the request
     // what is the Authorization header? It is the header that contains the accessToken

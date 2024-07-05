@@ -1,9 +1,0 @@
-/*
-  Warnings:
-
-  - You are about to drop the column `resetToken` on the `user` table. All the data in the column will be lost.
-
-*/
--- AlterTable
-ALTER TABLE `user` DROP COLUMN `resetToken`,
-    ADD COLUMN `refreshToken` VARCHAR(191) NULL;

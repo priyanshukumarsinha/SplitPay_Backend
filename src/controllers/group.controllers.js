@@ -4,6 +4,8 @@ import { ApiError, ApiResponse, asyncHandler} from '../utils/index.js'
 // createGroup to create a new group : POST /api/group/create : testing done
 const createGroup = asyncHandler(async (req, res) => {
     // Check if all details are provided : name and amount are necessary
+    console.log(req.body)
+
     if (!req.body.name || !req.body.amount) {
         throw new ApiError(400, 'Please provide all the details');
     }
@@ -107,6 +109,7 @@ const getGroup = asyncHandler(async (req, res) => {
     if (!req.params.id) {
         throw new ApiError(400, 'Please provide the group id');
     }
+
 
     // Find the group
     const group = await prisma.group.findFirst({
@@ -323,4 +326,56 @@ const removeMember = asyncHandler(async (req, res) => {
     return res.status(200).json(response);
 });
 
-export {createGroup, getGroup, addToGroup, removeMember}
+// deleteGroup to delete a group : DELETE /api/group/delete
+
+// updateGroup to update a group : PUT /api/group/update
+const updateGroup = asyncHandler(async (req, res) => {
+    // Check if the group id is provided
+    if (!req.body.groupId) {
+        throw new ApiError(400, 'Please provide the group id');
+    }
+
+    // Find the group
+    const group = await prisma.group.findFirst({
+        where: {
+            id: req.body.groupId,
+        },
+    });
+
+    // Check if the user is a member of the group
+    const ifGroupMember = await prisma.groupMembers.findFirst({
+        where: {
+            userId: req.user.id,
+            groupId: req.body.groupId,
+        }
+    })
+
+    if (!ifGroupMember) {
+        throw new ApiError(400, 'You are not a member of this group');
+    }
+
+    // Update the group
+    const updatedGroup = await prisma.group.update({
+        where: {
+            id: req.body.groupId,
+        },
+        data: {
+            name: req.body.name,
+            description: req.body.description,
+            currency: req.body.currency,
+            groupTypes: req.body.groupTypes,
+            amount: req.body.amount,
+        },
+    });
+
+    // Check if the group was updated
+    if (!updatedGroup) {
+        throw new ApiError(500, 'Error while updating the group');
+    }
+
+    // Send the response
+    const response = new ApiResponse(200, updatedGroup, 'Group updated successfully');
+    return res.status(200).json(response);
+});
+
+export {createGroup, getGroup, addToGroup, removeMember, updateGroup}

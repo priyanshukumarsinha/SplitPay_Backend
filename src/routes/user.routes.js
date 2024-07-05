@@ -14,7 +14,8 @@ import {
     getFollowers, 
     getFollowing, 
     getGroups,
-    verifyEmail
+    verifyEmail,
+    getGroupMembers
 } from '../controllers/user.controllers.js'
 
 // import the verifyJWT middleware
@@ -84,6 +85,11 @@ router.route('/groups').get(verifyJWT, getGroups);
 // SECURED ROUTES : why? because we need to be logged in to verify email
 // only verified (or loggedin Users) should be able to verify email, hence use verifyJWT middleware
 router.route('/verify-email').get(verifyJWT, verifyEmail);
+
+// to get list of members of a group : GET /api/group/:groupId/members
+// SECURED ROUTES : why? because we need to be logged in to get list of members of a group
+// only verified (or loggedin Users) should be able to get list of members of a group, hence use verifyJWT middleware
+router.route('/group/members/:groupId').get(verifyJWT, getGroupMembers);
 
 // export the router
 export {router}

@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import {router as userRouter} from './routes/user.routes.js'
 import {router as followRouter} from './routes/follow.routes.js'
 import {router as groupRouter} from './routes/group.routes.js'
+import {router as messageRouter} from './routes/message.routes.js'
 
 const app = express();
 app.use(
@@ -15,6 +16,7 @@ app.use(
         credentials: true,
     })
 );
+
 
 // parse application/json
 app.use(express.json({ limit: '16kb' }));
@@ -40,6 +42,10 @@ app.use('/api', followRouter)
 // The third route is the /api/group route which is handled by the groupRouter.
 // This route will handle all the group-related routes.
 app.use('/api', groupRouter)
+
+// The fourth route is the /api/message route which is handled by the messageRouter.
+// This route will handle all the message-related routes.
+app.use('/api', messageRouter)
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))

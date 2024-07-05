@@ -47,6 +47,17 @@ const followUser = asyncHandler(async (req, res) => {
             followerId: req.user.id,
             followingId: user.id,
         },
+        select: {
+            id: true,
+            following: {
+                select: {
+                    id: true,
+                    username: true,
+                    photoURL: true,
+                    phoneNumber: true,
+                },
+            },
+        },
     });
 
     // Check if the follow was successful

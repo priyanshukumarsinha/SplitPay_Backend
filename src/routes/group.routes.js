@@ -1,5 +1,5 @@
 import express from 'express'
-import { createGroup, getGroup, addToGroup, removeMember } from '../controllers/group.controllers.js'
+import { createGroup, getGroup, addToGroup, removeMember, updateGroup } from '../controllers/group.controllers.js'
 
 import { verifyJWT } from '../middlewares/auth.middleware.js';
 
@@ -16,6 +16,9 @@ router.route('/group/add').post(verifyJWT, addToGroup);
 
 // to remove a member from the group : DELETE /api/group/:groupId/removeq
 router.route('/group/remove').delete(verifyJWT, removeMember);
+
+// to update group details : PUT /api/group/:groupId/update
+router.route('/group/update').put(verifyJWT, updateGroup);
 
 
 export {router}
