@@ -1,6 +1,6 @@
 // This middleware is used to check if the user is authenticated or not
 
-import { asyncHandler } from "../utils/index.js";
+import { AsyncHandler } from "../utils/index.js";
 import jwt from "jsonwebtoken";
 import { prisma } from "../../prisma/index.js"
 import { ApiError } from "../utils/ApiError.js";
@@ -17,12 +17,12 @@ import { ApiError } from "../utils/ApiError.js";
 
 // we are going to use this middleware in the routes where we need to check if the user is authenticated or not, wherever we need authentication
 
-const verifyJWT = asyncHandler(async (req, res, next) => {
+const verifyJWT = AsyncHandler(async (req, res, next) => {
     // how will next know that we have to use the errorHandler middleware
     // if we use next() then it will go to the next middleware
     // if we use next(error) then it will go to the errorHandler middleware
-    // even if we use next() in the asyncHandler, it will go to the errorHandler middleware if there is an error on its own
-    // because the asyncHandler is wrapping the function with try catch block and calling next(error) in the catch block
+    // even if we use next() in the AsyncHandler, it will go to the errorHandler middleware if there is an error on its own
+    // because the AsyncHandler is wrapping the function with try catch block and calling next(error) in the catch block
 
     // get the accessToken from the cookies
     const accessToken = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");

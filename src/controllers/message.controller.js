@@ -1,8 +1,8 @@
 import {prisma} from '../../prisma/index.js'
-import { ApiError, ApiResponse, asyncHandler} from '../utils/index.js'
+import { ApiError, ApiResponse, AsyncHandler} from '../utils/index.js'
 
 // create a new message
-const createMessage = asyncHandler(async(req, res, next) => {
+const createMessage = AsyncHandler(async(req, res, next) => {
     // we need a sender, receiver (i.e group), and the message
     // get the sender from the req.user
     const sender = req.user
@@ -45,7 +45,7 @@ const createMessage = asyncHandler(async(req, res, next) => {
 })
 
 // get all messages in the group
-const getMessages = asyncHandler(async(req, res, next) => {
+const getMessages = AsyncHandler(async(req, res, next) => {
     // get groupId from req.params
     const groupId = req.params.groupId
 

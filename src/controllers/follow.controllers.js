@@ -1,8 +1,8 @@
 import {prisma} from '../../prisma/index.js'
-import { ApiError, ApiResponse, asyncHandler } from '../utils/index.js'
+import { ApiError, ApiResponse, AsyncHandler } from '../utils/index.js'
 
 // followUser to follow a user : POST /api/follow/:username
-const followUser = asyncHandler(async (req, res) => {
+const followUser = AsyncHandler(async (req, res) => {
     // Get the username from the params
     const { username } = req.params;
 
@@ -74,7 +74,7 @@ const followUser = asyncHandler(async (req, res) => {
 });
 
 // unfolow a user : DELETE /api/unfollow/:username
-const unfollowUser = asyncHandler(async (req, res) => {
+const unfollowUser = AsyncHandler(async (req, res) => {
     // Get the username from the params
     const { username } = req.params;
 

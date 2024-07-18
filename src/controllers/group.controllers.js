@@ -1,8 +1,8 @@
 import {prisma} from '../../prisma/index.js'
-import { ApiError, ApiResponse, asyncHandler} from '../utils/index.js'
+import { ApiError, ApiResponse, AsyncHandler} from '../utils/index.js'
 
 // createGroup to create a new group : POST /api/group/create : testing done
-const createGroup = asyncHandler(async (req, res) => {
+const createGroup = AsyncHandler(async (req, res) => {
     // Check if all details are provided : name and amount are necessary
     console.log(req.body)
 
@@ -104,7 +104,7 @@ const createGroup = asyncHandler(async (req, res) => {
 });
 
 // getGroup to get a group : GET /api/group/:id : testing done
-const getGroup = asyncHandler(async (req, res) => {
+const getGroup = AsyncHandler(async (req, res) => {
     // Check if the id is provided
     if (!req.params.id) {
         throw new ApiError(400, 'Please provide the group id');
@@ -177,7 +177,7 @@ const getGroup = asyncHandler(async (req, res) => {
 });
 
 // addToGroup to add a member to a group : POST /api/group/add
-const addToGroup = asyncHandler(async (req, res) => {
+const addToGroup = AsyncHandler(async (req, res) => {
     // Check if the user id and group id are provided
     if (!req.body.userId || !req.body.groupId) {
         throw new ApiError(400, 'Please provide the user id and group id');
@@ -255,7 +255,7 @@ const addToGroup = asyncHandler(async (req, res) => {
 });
 
 // removeMember to remove a member from a group : DELETE /api/group/remove
-const removeMember = asyncHandler(async (req, res) => {
+const removeMember = AsyncHandler(async (req, res) => {
     // Check if the user id and group id are provided
     if (!req.body.userId || !req.body.groupId) {
         throw new ApiError(400, 'Please provide the user id and group id');
@@ -329,7 +329,7 @@ const removeMember = asyncHandler(async (req, res) => {
 // deleteGroup to delete a group : DELETE /api/group/delete
 
 // updateGroup to update a group : PUT /api/group/update
-const updateGroup = asyncHandler(async (req, res) => {
+const updateGroup = AsyncHandler(async (req, res) => {
     // Check if the group id is provided
     if (!req.body.groupId) {
         throw new ApiError(400, 'Please provide the group id');

@@ -1,5 +1,5 @@
 // This is the error handler middleware that we are going to use to send the error response
-// which might occur while using asynchandler
+// which might occur while using AsyncHandler
 // So we are going to use this middleware in the routes where we need to send the error response
 
 import { ApiError } from "../utils/ApiError.js";

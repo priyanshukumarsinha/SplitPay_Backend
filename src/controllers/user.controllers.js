@@ -1,6 +1,6 @@
 // bring in Prisma
 import {prisma} from '../../prisma/index.js'
-import { ApiError, ApiResponse, asyncHandler, generateAccessToken, generateRefreshToken } from '../utils/index.js'
+import { ApiError, ApiResponse, AsyncHandler, generateAccessToken, generateRefreshToken } from '../utils/index.js'
 
 import bcrypt from 'bcrypt'
 import { options } from '../constants.js';
@@ -68,7 +68,7 @@ const generateAccessRefreshToken = async (userId) => {
 }
 
 // create a new user : testing done
-const createUser = asyncHandler(async (req, res) => {
+const createUser = AsyncHandler(async (req, res) => {
     // take information from req.body
     const { firstName, lastName, username, email, password, phoneNumber, isEmailVerified, photoURL, dob } = req.body;
 
@@ -129,7 +129,7 @@ const createUser = asyncHandler(async (req, res) => {
 
 
 // Login user : testing done
-const login = asyncHandler(async (req, res) => {
+const login = AsyncHandler(async (req, res) => {
     // take information from req.body
     const {username, email, password} = req.body;
 
@@ -186,7 +186,7 @@ const login = asyncHandler(async (req, res) => {
 });
 
 // logout user : testing done
-const logout = asyncHandler(async (req, res) => {
+const logout = AsyncHandler(async (req, res) => {
     // remove the Refresh Token from the Database
     // we are removing the Refresh Token from the Database so that the user cannot generate new Access Token
     // Even after the user logs out, the Access Token is still valid until it expires
@@ -213,7 +213,7 @@ const logout = asyncHandler(async (req, res) => {
 });
 
 // update user details : testing done
-const updateUser = asyncHandler(async (req, res) => {
+const updateUser = AsyncHandler(async (req, res) => {
     // take information from req.body or use the existing information
     // we are using the existing information if the user does not provide the information
     // where to get the existing information? from the req.user object
@@ -263,7 +263,7 @@ const updateUser = asyncHandler(async (req, res) => {
 });
 
 // delete user : testing done
-const deleteUser = asyncHandler(async (req, res) => {
+const deleteUser = AsyncHandler(async (req, res) => {
     // delete the user
     const user = await prisma.user.delete({
         where : {
@@ -280,7 +280,7 @@ const deleteUser = asyncHandler(async (req, res) => {
 });
 
 // get Current User Details : testing done
-const getCurrentUser = asyncHandler(async (req, res) => {
+const getCurrentUser = AsyncHandler(async (req, res) => {
     // get the user details
     const user = await prisma.user.findUnique({
         where : {
@@ -307,7 +307,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 // get User Details by Username
-const getUserByUsername = asyncHandler(async (req, res) => {
+const getUserByUsername = AsyncHandler(async (req, res) => {
     // get the username from the params
     const {username} = req.params;
 
@@ -348,7 +348,7 @@ const getUserByUsername = asyncHandler(async (req, res) => {
 });
 
 // change password
-const changePassword = asyncHandler(async (req, res) => {
+const changePassword = AsyncHandler(async (req, res) => {
     // take information from req.body
     const {oldPassword, newPassword} = req.body;
 
@@ -400,12 +400,12 @@ const changePassword = asyncHandler(async (req, res) => {
 });
 
 // change photoURL
-const changePhotoURL = asyncHandler(async (req, res) => {
+const changePhotoURL = AsyncHandler(async (req, res) => {
   // Implementation code goes here
 });
 
 // get list of followers
-const getFollowers = asyncHandler(async (req, res) => {
+const getFollowers = AsyncHandler(async (req, res) => {
     // check the follower table and find the followers of the user
     const followers = await prisma.follow.findMany({
         where : {
@@ -422,7 +422,7 @@ const getFollowers = asyncHandler(async (req, res) => {
 });
 
 // get list of following
-const getFollowing = asyncHandler(async (req, res) => {
+const getFollowing = AsyncHandler(async (req, res) => {
     // check the follow table and find the following of the user
     const following = await prisma.follow.findMany({
         where : {
@@ -439,7 +439,7 @@ const getFollowing = asyncHandler(async (req, res) => {
 });
 
 // get list of all groups user is part of
-const getGroups = asyncHandler(async (req, res) => {
+const getGroups = AsyncHandler(async (req, res) => {
 
     // get the data from group table where the user is part of the group
     const groups = await prisma.groupMembers.findMany({
@@ -503,10 +503,10 @@ const getGroups = asyncHandler(async (req, res) => {
 });
 
 // verify email
-const verifyEmail = asyncHandler(async (req, res) => {});
+const verifyEmail = AsyncHandler(async (req, res) => {});
 
 // get groupMembers
-const getGroupMembers = asyncHandler(async (req, res) => {
+const getGroupMembers = AsyncHandler(async (req, res) => {
     // get the groupId from the params
     const {groupId} = req.params;
 
